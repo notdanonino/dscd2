@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bank Marketing Predictor</title>
+</head>
+<body>
+  <h1>Estimación de propensión a depósito</h1>
+
+  <form id="predict-form">
+    <label>Edad:
+      <input type="number" name="age" required min="18" max="100" />
+    </label><br/>
+
+    <label>Ocupación:
+      <select name="job">
+        <option value="admin.">admin.</option>
+        <option value="technician">technician</option>
+        <option value="services">services</option>
+        <option value="management">management</option>
+        <option value="blue-collar">blue-collar</option>
+        <option value="entrepreneur">entrepreneur</option>
+        <option value="retired">retired</option>
+        <option value="student">student</option>
+        <option value="self-employed">self-employed</option>
+        <option value="unemployed">unemployed</option>
+        <option value="housemaid">housemaid</option>
+        <option value="unknown">unknown</option>
+      </select>
+    </label><br/>
+
+    <label>Estado civil:
+      <select name="marital">
+        <option value="single">single</option>
+        <option value="married">married</option>
+        <option value="divorced">divorced</option>
+      </select>
+    </label><br/>
+
+    <label>Educación:
+      <select name="education">
+        <option value="primary">primary</option>
+        <option value="secondary">secondary</option>
+        <option value="tertiary">tertiary</option>
+        <option value="unknown">unknown</option>
+      </select>
+    </label><br/>
+
+    <label>Balance anual promedio:
+      <input type="number" name="balance" required />
+    </label><br/>
+
+    <label>Crédito hipotecario:
+      <select name="housing">
+        <option value="yes">Sí</option>
+        <option value="no">No</option>
+      </select>
+    </label><br/>
+
+    <label>Préstamo personal:
+      <select name="loan">
+        <option value="yes">Sí</option>
+        <option value="no">No</option>
+      </select>
+    </label><br/>
+
+    <label>Número de contactos en la campaña:
+      <input type="number" name="campaign" required min="1" max="50" />
+    </label><br/>
+
+    <button type="submit">Estimar propensión</button>
+  </form>
+
+  <h2>Resultado</h2>
+  <pre id="result"></pre>
+
+  <h2>Historial reciente</h2>
+  <pre id="history"></pre>
+
+  <script>
+    const API_BASE = "http://127.0.0.1:9001";
+
+    async function loadHistory() {
+      try {
+        const res = await fetch(`${API_BASE}/api/predictions`);
+        if (!res.ok) return;
+        const data = await res.json();
+        document.getElementById("history").textContent = JSON.stringify(data, null, 2);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    document.getElementById("predict-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const form = e.target;
+
+      const payload = {
+        age: Number(form.age.value),
+        job: form.job.value,
+        marital: form.marital.value,
+        education: form.education.value,
+        balance: Number(form.balance.value),
+        housing: form.housing.value,
+        loan: form.loan.value,
+        campaign: Number(form.campaign.value),
+      };
+
+      try {
+        const res = await fetch(`${API_BASE}/api/predict`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const resultEl = document.getElementById("result");
+
+        if (!res.ok) {
+          const err = await res.json();
+          resultEl.textContent = "Error: " + (err.detail || res.statusText);
+          return;
+        }
+
+        const data = await res.json();
+        resultEl.textContent =
+          `Probabilidad estimada de contratación: ${(data.probability * 100).toFixed(1)}%\n` +
+          `Predicción: ${data.classification} (prediction = ${data.prediction})`;
+
+        await loadHistory();
+      } catch (error) {
+        document.getElementById("result").textContent = "Error de red: " + error;
+      }
+    });
+
+    loadHistory();
+  </script>
+</body>
+</html>
