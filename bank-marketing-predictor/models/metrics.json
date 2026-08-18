@@ -1,0 +1,44 @@
+{
+  "accuracy": 0.6099,
+  "precision": 0.1608,
+  "recall": 0.5673,
+  "f1": 0.2505,
+  "classification_report": {
+    "0": {
+      "precision": 0.9163568773234201,
+      "recall": 0.6154806491885143,
+      "f1-score": 0.736370425690814,
+      "support": 801.0
+    },
+    "1": {
+      "precision": 0.16076294277929154,
+      "recall": 0.5673076923076923,
+      "f1-score": 0.2505307855626327,
+      "support": 104.0
+    },
+    "accuracy": 0.6099447513812155,
+    "macro avg": {
+      "precision": 0.5385599100513558,
+      "recall": 0.5913941707481033,
+      "f1-score": 0.4934506056267234,
+      "support": 905.0
+    },
+    "weighted avg": {
+      "precision": 0.8295261931327136,
+      "recall": 0.6099447513812155,
+      "f1-score": 0.6805391300296749,
+      "support": 905.0
+    }
+  },
+  "n_rows": 4521,
+  "features": [
+    "age",
+    "job",
+    "marital",
+    "education",
+    "balance",
+    "housing",
+    "loan",
+    "campaign"
+  ]
+}

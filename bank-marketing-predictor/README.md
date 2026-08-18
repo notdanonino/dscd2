@@ -1,11 +1,168 @@
-# 7.1 Cómo correr
-Crear entorno, instalar requirements.
+# Bank Marketing Predictor — Regresión Logística
 
-Ejecutar python scripts/train_model.py.
+Este proyecto implementa una **solución completa de inferencia** con Regresión Logística:
 
-Ejecutar bash scripts/run_backend.sh.
+Datos → Preprocesamiento → Entrenamiento → Persistencia → API → Inferencia → Frontend
 
-Abrir http://127.0.0.1:9001 en el navegador.
+El caso es el dataset **Bank Marketing** de UCI: el modelo estima la probabilidad de que un cliente contrate un depósito a plazo a partir de información básica capturada por un asesor.[file:30]
+
+---
+
+## 1. Estructura del proyecto
+
+```bash
+bank-marketing-predictor/
+├── app/
+│   ├── __init__.py
+│   ├── main.py             # FastAPI + rutas + frontend estático
+│   ├── database.py         # SQLite para guardar inferencias
+│   ├── model_service.py    # Carga del modelo y lógica de predicción
+│   ├── schemas.py          # Modelos Pydantic (request/response)
+│   └── static/
+│       └── index.html      # Frontend mínimo (formulario web)
+│
+├── data/
+│   └── bank.csv            # Dataset Bank Marketing (UCI)
+│
+├── models/
+│   └── bank_marketing_pipeline.joblib  # Pipeline entrenado (scikit-learn)
+│
+├── scripts/
+│   ├── train_model.py      # Entrenamiento + evaluación + persistencia
+│   ├── run_backend.sh      # Levanta la API (opcional si usas bash)
+│   ├── run_frontend.sh     # (opcional, no requerido si sirves estático)
+│   └── run_site.sh         # (opcional)
+│
+├── requirements.txt
+└── README.md
+```
+
+---
+
+## 2. Requisitos
+
+- Python 3.11 (recomendado).
+- Git.
+- Opcional: bash (Git Bash o WSL) si quieres usar los scripts `.sh` tal cual.[file:3]
+
+Instalar dependencias:
+
+```bash
+pip install -r requirements.txt
+```
+
+Dependencias principales:
+
+- `scikit-learn`, `pandas`, `joblib` para entrenamiento e inferencia.
+- `fastapi`, `uvicorn`, `pydantic` para la API y validación de datos.[file:4][file:23]
+
+---
+
+## 3. Entrenamiento del modelo
+
+Desde la carpeta `bank-marketing-predictor/`:
+
+```bash
+python scripts/train_model.py
+```
+
+Este script:
+
+1. Carga `data/bank.csv` (dataset de UCI, separador `;`).[file:30]  
+2. Selecciona las variables:
+
+   - `age`, `job`, `marital`, `education`, `balance`, `housing`, `loan`, `campaign`.
+   - Variable objetivo: `y` (yes/no).  
+
+3. Separa `X` e `y`.  
+4. Divide en `train` y `test`.  
+5. Construye un `ColumnTransformer` con:
+
+   - Numéricas: `age`, `balance`, `campaign` → `StandardScaler`.  
+   - Categóricas: `job`, `marital`, `education`, `housing`, `loan` → `OneHotEncoder`.  
+
+6. Crea un `Pipeline` `preprocesamiento → LogisticRegression`.  
+7. Entrena el modelo y calcula métricas (accuracy, precision, recall, F1).  
+8. Guarda:
+
+   - `models/bank_marketing_pipeline.joblib`
+   - `models/metrics.json`.[file:29]
+
+---
+
+## 4. Levantar la API (FastAPI)
+
+### Opción A — Comando directo
+
+Desde `bank-marketing-predictor/`:
+
+```bash
+export PYTHONPATH=$(pwd)  # en PowerShell: $env:PYTHONPATH = (Get-Location).Path
+uvicorn app.main:app --reload --host 0.0.0.0 --port 9001
+```
+
+La API quedará disponible en:
+
+- Frontend: http://127.0.0.1:9001/
+- Docs: http://127.0.0.1:9001/docs
+
+### Opción B — Script `run_backend.sh`
+
+Si tienes bash (Git Bash / WSL):
+
+```bash
+bash scripts/run_backend.sh
+```
+
+---
+
+## 5. Endpoints disponibles
+
+La aplicación expone:
+
+- `GET /api/health`  
+  - Devuelve `{ "status": "ok" }` para comprobar que la API está viva.[file:23]
+
+- `POST /api/predict`  
+  - Request (JSON):
+    ```json
+    {
+      "age": 41,
+      "job": "technician",
+      "marital": "married",
+      "education": "secondary",
+      "balance": 3200,
+      "housing": "yes",
+      "loan": "no",
+      "campaign": 2
+    }
+    ```
+  - Response (JSON):
+    ```json
+    {
+      "probability": 0.72,
+      "prediction": "yes",
+      "classification": "Potencialmente interesado"
+    }
+    ```
+
+- `GET /api/predictions`  
+  - Devuelve el historial reciente de inferencias guardadas en SQLite, incluyendo features de entrada, probabilidad, predicción y timestamp.[file:21][file:23]
+
+---
+
+## 6. Frontend (flujo Frontend → API → Modelo)
+
+El archivo `app/static/index.html` implementa una interfaz mínima:
+
+1. El usuario captura: edad, ocupación, estado civil, educación, balance, housing, loan, campaign.  
+2. Al presionar “Estimar propensión”, el frontend hace un `fetch` a `POST /api/predict`.  
+3. Muestra la probabilidad estimada y la clasificación en texto claro.  
+4. Consulta `GET /api/predictions` para mostrar el historial reciente de inferencias.[file:23]
+
+El frontend **no** entrena ni ejecuta el modelo directamente: solo consume la API y muestra el resultado.
+
+---
 
 # 7.2 Evidencias
 Caso A — Mostrar una solicitud correcta y la predicción obtenida.

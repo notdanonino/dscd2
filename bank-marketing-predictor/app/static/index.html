@@ -3,91 +3,421 @@
 <head>
   <meta charset="UTF-8" />
   <title>Bank Marketing Predictor</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --card-bg: #151a2c;
+      --accent: #4f46e5;
+      --accent-soft: rgba(79, 70, 229, 0.15);
+      --text-main: #f9fafb;
+      --text-muted: #9ca3af;
+      --border: #1f2937;
+      --error: #f97373;
+      --success: #22c55e;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1f2937 0, #020617 50%, #020617 100%);
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .app {
+      max-width: 960px;
+      width: 100%;
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+      gap: 24px;
+    }
+
+    @media (max-width: 900px) {
+      .app {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .card {
+      background: linear-gradient(145deg, #0b1020, #111827);
+      border-radius: 16px;
+      padding: 24px 28px;
+      border: 1px solid var(--border);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
+    }
+
+    h1 {
+      margin: 0 0 4px;
+      font-size: 1.6rem;
+      letter-spacing: 0.03em;
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      color: var(--accent);
+      background: var(--accent-soft);
+      border-radius: 999px;
+      padding: 4px 10px;
+      margin-bottom: 16px;
+    }
+
+    .pill-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 8px rgba(129, 140, 248, 0.9);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px 16px;
+    }
+
+    @media (max-width: 600px) {
+      .form-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 0.85rem;
+    }
+
+    .field label {
+      color: var(--text-muted);
+    }
+
+    input[type="number"],
+    select {
+      background-color: #020617;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      padding: 8px 10px;
+      color: var(--text-main);
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s;
+    }
+
+    input[type="number"]:focus,
+    select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.4);
+      background-color: #020617;
+    }
+
+    .actions {
+      margin-top: 16px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 10px 20px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: white;
+      box-shadow: 0 12px 30px rgba(79, 70, 229, 0.45);
+      transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 36px rgba(79, 70, 229, 0.65);
+    }
+
+    button:active {
+      transform: translateY(0);
+      box-shadow: 0 8px 20px rgba(79, 70, 229, 0.4);
+      opacity: 0.95;
+    }
+
+    .result-card {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .result-main {
+      padding: 16px;
+      border-radius: 14px;
+      background: radial-gradient(circle at top left, rgba(34, 197, 94, 0.18), transparent 60%);
+      border: 1px solid var(--border);
+    }
+
+    .result-title {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .result-prob {
+      font-size: 1.8rem;
+      font-weight: 700;
+    }
+
+    .result-prob span {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-left: 4px;
+    }
+
+    .result-class {
+      margin-top: 6px;
+      font-size: 0.95rem;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      background-color: rgba(34, 197, 94, 0.12);
+      color: var(--success);
+      border: 1px solid rgba(34, 197, 94, 0.2);
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--success);
+      box-shadow: 0 0 8px rgba(34, 197, 94, 0.8);
+    }
+
+    .result-raw,
+    .history {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.75rem;
+      line-height: 1.45;
+      color: var(--text-muted);
+      background-color: #020617;
+      border-radius: 10px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      max-height: 200px;
+      overflow: auto;
+      white-space: pre-wrap;
+    }
+
+    .history-title {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .error {
+      color: var(--error);
+    }
+  </style>
 </head>
 <body>
-  <h1>Estimación de propensión a depósito</h1>
+  <div class="app">
+    <div class="card">
+      <div class="pill">
+        <span class="pill-dot"></span>
+        Regresión logística · Bank Marketing
+      </div>
+      <h1>Estimación de propensión a depósito</h1>
+      <p class="subtitle">
+        Captura las características del cliente y obtén la probabilidad estimada de que contrate un depósito a plazo.
+      </p>
 
-  <form id="predict-form">
-    <label>Edad:
-      <input type="number" name="age" required min="18" max="100" />
-    </label><br/>
+      <form id="predict-form">
+        <div class="form-grid">
+          <div class="field">
+            <label for="age">Edad</label>
+            <input type="number" id="age" name="age" min="18" max="100" required />
+          </div>
 
-    <label>Ocupación:
-      <select name="job">
-        <option value="admin.">admin.</option>
-        <option value="technician">technician</option>
-        <option value="services">services</option>
-        <option value="management">management</option>
-        <option value="blue-collar">blue-collar</option>
-        <option value="entrepreneur">entrepreneur</option>
-        <option value="retired">retired</option>
-        <option value="student">student</option>
-        <option value="self-employed">self-employed</option>
-        <option value="unemployed">unemployed</option>
-        <option value="housemaid">housemaid</option>
-        <option value="unknown">unknown</option>
-      </select>
-    </label><br/>
+          <div class="field">
+            <label for="job">Ocupación</label>
+            <select id="job" name="job">
+              <option value="admin.">admin.</option>
+              <option value="technician">technician</option>
+              <option value="services">services</option>
+              <option value="management">management</option>
+              <option value="blue-collar">blue-collar</option>
+              <option value="entrepreneur">entrepreneur</option>
+              <option value="retired">retired</option>
+              <option value="student">student</option>
+              <option value="self-employed">self-employed</option>
+              <option value="unemployed">unemployed</option>
+              <option value="housemaid">housemaid</option>
+              <option value="unknown">unknown</option>
+            </select>
+          </div>
 
-    <label>Estado civil:
-      <select name="marital">
-        <option value="single">single</option>
-        <option value="married">married</option>
-        <option value="divorced">divorced</option>
-      </select>
-    </label><br/>
+          <div class="field">
+            <label for="marital">Estado civil</label>
+            <select id="marital" name="marital">
+              <option value="single">single</option>
+              <option value="married">married</option>
+              <option value="divorced">divorced</option>
+            </select>
+          </div>
 
-    <label>Educación:
-      <select name="education">
-        <option value="primary">primary</option>
-        <option value="secondary">secondary</option>
-        <option value="tertiary">tertiary</option>
-        <option value="unknown">unknown</option>
-      </select>
-    </label><br/>
+          <div class="field">
+            <label for="education">Educación</label>
+            <select id="education" name="education">
+              <option value="primary">primary</option>
+              <option value="secondary">secondary</option>
+              <option value="tertiary">tertiary</option>
+              <option value="unknown">unknown</option>
+            </select>
+          </div>
 
-    <label>Balance anual promedio:
-      <input type="number" name="balance" required />
-    </label><br/>
+          <div class="field">
+            <label for="balance">Balance anual promedio</label>
+            <input type="number" id="balance" name="balance" required />
+          </div>
 
-    <label>Crédito hipotecario:
-      <select name="housing">
-        <option value="yes">Sí</option>
-        <option value="no">No</option>
-      </select>
-    </label><br/>
+          <div class="field">
+            <label for="campaign">Contactos en la campaña</label>
+            <input type="number" id="campaign" name="campaign" min="1" max="50" required />
+          </div>
 
-    <label>Préstamo personal:
-      <select name="loan">
-        <option value="yes">Sí</option>
-        <option value="no">No</option>
-      </select>
-    </label><br/>
+          <div class="field">
+            <label for="housing">Crédito hipotecario</label>
+            <select id="housing" name="housing">
+              <option value="yes">Sí</option>
+              <option value="no">No</option>
+            </select>
+          </div>
 
-    <label>Número de contactos en la campaña:
-      <input type="number" name="campaign" required min="1" max="50" />
-    </label><br/>
+          <div class="field">
+            <label for="loan">Préstamo personal</label>
+            <select id="loan" name="loan">
+              <option value="yes">Sí</option>
+              <option value="no">No</option>
+            </select>
+          </div>
+        </div>
 
-    <button type="submit">Estimar propensión</button>
-  </form>
+        <div class="actions">
+          <button type="submit">Estimar propensión</button>
+        </div>
+      </form>
+    </div>
 
-  <h2>Resultado</h2>
-  <pre id="result"></pre>
+    <div class="card result-card">
+      <div class="result-main">
+        <div class="result-title">Resultado</div>
+        <div id="probability" class="result-prob">
+          -- <span>probabilidad de contratación</span>
+        </div>
+        <div id="classification" class="result-class">
+          Completa el formulario y presiona <strong>Estimar propensión</strong>.
+        </div>
+        <div id="badge" class="badge" style="display:none;">
+          <span class="badge-dot"></span>
+          Cliente potencial
+        </div>
+      </div>
 
-  <h2>Historial reciente</h2>
-  <pre id="history"></pre>
+      <div>
+        <div class="history-title">Respuesta cruda de la API</div>
+        <pre id="result-raw" class="result-raw">Esperando inferencia...</pre>
+      </div>
+
+      <div>
+        <div class="history-title">Historial reciente</div>
+        <pre id="history" class="history">Cargando historial...</pre>
+      </div>
+    </div>
+  </div>
 
   <script>
     const API_BASE = "http://127.0.0.1:9001";
 
+    function formatPercent(prob) {
+      if (prob == null) return "--";
+      return (prob * 100).toFixed(1) + " %";
+    }
+
+    function updateResultView(data) {
+      const probEl = document.getElementById("probability");
+      const classEl = document.getElementById("classification");
+      const badgeEl = document.getElementById("badge");
+      const rawEl = document.getElementById("result-raw");
+
+      if (!data || typeof data.probability !== "number") {
+        probEl.textContent = "--";
+        classEl.innerHTML = '<span class="error">Error al obtener la predicción.</span>';
+        badgeEl.style.display = "none";
+        rawEl.textContent = JSON.stringify(data || {}, null, 2);
+        return;
+      }
+
+      probEl.innerHTML = `${formatPercent(data.probability)} <span>probabilidad de contratación</span>`;
+      classEl.textContent = data.classification + ` (prediction = ${data.prediction})`;
+      rawEl.textContent = JSON.stringify(data, null, 2);
+
+      if (data.probability >= 0.5) {
+        badgeEl.style.display = "inline-flex";
+        badgeEl.textContent = "";
+        const dot = document.createElement("span");
+        dot.className = "badge-dot";
+        badgeEl.appendChild(dot);
+        badgeEl.appendChild(document.createTextNode("Cliente potencial"));
+      } else if (data.probability >= 0.2) {
+        badgeEl.style.display = "inline-flex";
+        badgeEl.textContent = "";
+        const dot = document.createElement("span");
+        dot.className = "badge-dot";
+        badgeEl.appendChild(dot);
+        badgeEl.appendChild(document.createTextNode("Interés moderado"));
+      } else {
+        badgeEl.style.display = "inline-flex";
+        badgeEl.textContent = "";
+        const dot = document.createElement("span");
+        dot.className = "badge-dot";
+        badgeEl.appendChild(dot);
+        badgeEl.appendChild(document.createTextNode("Poco probable"));
+      }
+    }
+
     async function loadHistory() {
+      const historyEl = document.getElementById("history");
       try {
         const res = await fetch(`${API_BASE}/api/predictions`);
-        if (!res.ok) return;
+        if (!res.ok) {
+          historyEl.textContent = "No se pudo cargar el historial.";
+          return;
+        }
         const data = await res.json();
-        document.getElementById("history").textContent = JSON.stringify(data, null, 2);
+        historyEl.textContent = JSON.stringify(data, null, 2);
       } catch (err) {
-        console.error(err);
+        historyEl.textContent = "Error de red al cargar historial.";
       }
     }
 
@@ -95,7 +425,6 @@
       e.preventDefault();
 
       const form = e.target;
-
       const payload = {
         age: Number(form.age.value),
         job: form.job.value,
@@ -107,6 +436,9 @@
         campaign: Number(form.campaign.value),
       };
 
+      const rawEl = document.getElementById("result-raw");
+      rawEl.textContent = "Enviando solicitud...";
+
       try {
         const res = await fetch(`${API_BASE}/api/predict`, {
           method: "POST",
@@ -114,22 +446,25 @@
           body: JSON.stringify(payload),
         });
 
-        const resultEl = document.getElementById("result");
-
         if (!res.ok) {
-          const err = await res.json();
-          resultEl.textContent = "Error: " + (err.detail || res.statusText);
+          let errText = `Error ${res.status}`;
+          try {
+            const err = await res.json();
+            errText += ": " + (err.detail || JSON.stringify(err));
+          } catch (_) {}
+          document.getElementById("classification").innerHTML =
+            `<span class="error">${errText}</span>`;
+          rawEl.textContent = errText;
           return;
         }
 
         const data = await res.json();
-        resultEl.textContent =
-          `Probabilidad estimada de contratación: ${(data.probability * 100).toFixed(1)}%\n` +
-          `Predicción: ${data.classification} (prediction = ${data.prediction})`;
-
+        updateResultView(data);
         await loadHistory();
       } catch (error) {
-        document.getElementById("result").textContent = "Error de red: " + error;
+        document.getElementById("classification").innerHTML =
+          '<span class="error">Error de red al llamar a la API.</span>';
+        rawEl.textContent = String(error);
       }
     });
 
